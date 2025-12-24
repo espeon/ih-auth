@@ -1,3 +1,4 @@
+import { PlusIcon } from "@phosphor-icons/react/dist/ssr";
 import type { StoredHandle } from "../types/auth";
 import {
   GlobeIcon,
@@ -10,12 +11,14 @@ interface HandleSelectorProps {
   handles: StoredHandle[];
   onSelect: (handle: string) => void;
   onDelete: (handle: string) => void;
+  onAdd?: () => void;
 }
 
 export function HandleSelector({
   handles,
   onSelect,
   onDelete,
+  onAdd = () => {},
 }: HandleSelectorProps) {
   if (handles.length === 0) return null;
 
@@ -40,7 +43,7 @@ export function HandleSelector({
                 border border-border hover:border-primary/50
                 rounded-xl
                 transition-all duration-200
-                hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/10
+                hover:scale-[1.01] hover:shadow-lg hover:shadow-primary/10
                 text-left
               "
             >
@@ -50,7 +53,7 @@ export function HandleSelector({
                   alt={stored.profile.displayName || stored.handle}
                   className="
                   w-10 h-10
-                  rounded-lg
+                  rounded-full
                   object-cover
                   border border-primary/20
                   group-hover:border-primary/40
@@ -62,7 +65,7 @@ export function HandleSelector({
                   className="
                 flex items-center justify-center
                 w-10 h-10
-                rounded-lg
+                rounded-full
                 bg-gradient-to-br from-primary/20 to-primary/30
                 border border-primary/20
                 group-hover:border-primary/40
@@ -88,7 +91,7 @@ export function HandleSelector({
                 </div>
               </div>
               <div className="flex flex-row items-center gap-2">
-                <button
+                <div
                   onClick={(e) => {
                     e.stopPropagation();
                     onDelete(stored.handle);
@@ -111,7 +114,7 @@ export function HandleSelector({
                     className="w-4 h-4 transition-colors"
                     weight="bold"
                   />
-                </button>
+                </div>
 
                 <div
                   className="
@@ -126,6 +129,60 @@ export function HandleSelector({
             </button>
           </div>
         ))}
+        <div
+          key="add-account"
+          className="group relative"
+          style={{
+            animation: `fadeInUp 0.4s ease-out ${(handles.length + 1) * 0.05}s both`,
+          }}
+        >
+          <button
+            onClick={() => onAdd()}
+            className="
+              w-full
+              flex items-center gap-3
+              px-2 py-2
+              bg-card hover:bg-accent
+              border border-border hover:border-primary/50
+              rounded-xl
+              transition-all duration-200
+              hover:scale-[1.01] hover:shadow-lg hover:shadow-primary/10
+              text-left
+            "
+          >
+            <div
+              className="
+              flex items-center justify-center
+              w-10 h-10
+              rounded-full
+              bg-linear-to-br from-primary/10 to-primary/20
+              group-hover:bg-linear-to-tl
+              border border-primary/20
+              group-hover:border-primary/40
+              transition-colors
+            "
+            >
+              <PlusIcon className="w-5 h-5 text-primary" weight="bold" />
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="text-sm text-foreground font-medium truncate">
+                Add account
+              </div>
+            </div>
+            <div className="flex flex-row items-center gap-2">
+              <div
+                className="
+            opacity-0 group-hover:opacity-100
+            text-primary
+            transition-opacity
+          "
+              >
+                <CaretRightIcon className="w-5 h-5" weight="bold" />
+              </div>
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   );

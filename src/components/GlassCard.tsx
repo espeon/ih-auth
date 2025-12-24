@@ -17,9 +17,9 @@ export function GlassCard({ children, className = "" }: GlassCardProps) {
         ${className}
       `}
     >
-      <div className="absolute inset-0 rounded-2xl bg-card blur-2xl pointer-events-none -z-3">
+      <div className="absolute inset-0 rounded-2xl bg-card/75 blur-3xl pointer-events-none -z-3">
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 blur-sm"
           style={{
             backgroundImage: `
             linear-gradient(oklch(0.439 0 0 / 0.2) 1px, transparent 1px),

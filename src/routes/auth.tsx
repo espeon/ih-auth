@@ -8,23 +8,25 @@ import { GridBackground } from "../components/GridBackground";
 import { GlassCard } from "../components/GlassCard";
 import { HandleSelector } from "../components/HandleSelector";
 import { HandleInput } from "../components/HandleInput";
-import { parseAuthParams, buildRedirectUrl } from "../utils/redirect";
+import { parseAuthParams } from "../utils/redirect";
 import { getRecentHandles, addHandle, deleteHandle } from "../utils/storage";
 import { enrichHandle } from "../utils/api";
 import {
   WarningCircleIcon,
   CaretLeftIcon,
-  ArrowSquareOutIcon,
   CaretRightIcon,
+  QuestionIcon,
 } from "@phosphor-icons/react";
 import type { StoredHandle } from "../types/auth";
 import { AtIcon } from "@/components/AtIcon";
-import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { PDSSelector } from "@/components/PDSSelector";
 
 type AuthSearch = {
   redirect_uri?: string;
   nonce?: string;
   view?: "main" | "manual" | "signup";
+  handle?: string;
+  pdsUrl?: string;
 };
 
 export const Route = createFileRoute("/auth")({
@@ -34,6 +36,8 @@ export const Route = createFileRoute("/auth")({
       redirect_uri: search.redirect_uri as string,
       nonce: search.nonce as string,
       view: (search.view as "main" | "manual" | "signup") || "main",
+      handle: search.handle as string,
+      pdsUrl: search.pdsUrl as string,
     };
   },
 });
@@ -118,19 +122,53 @@ function AuthPage() {
   const handleSelection = async (handle: string, type: "handle" | "pds") => {
     if (!authParams || isEnriching) return;
 
+    // if we're doing a PDS, skip enrichment
+    if (type === "pds") {
+      const transitionToRedirecting = () => {
+        navigate({
+          to: "/redirect",
+          search: {
+            redirect_uri: authParams.redirect_uri,
+            nonce: authParams.nonce,
+            pdsUrl: handle,
+          },
+        });
+      };
+
+      if (document.startViewTransition) {
+        document.startViewTransition(transitionToRedirecting);
+      } else {
+        transitionToRedirecting();
+      }
+      return;
+    }
+
     setIsEnriching(true);
 
     const enrichedData = await enrichHandle(handle);
 
-    addHandle(handle, type, enrichedData);
+    if (type === "handle") addHandle(handle, type, enrichedData);
 
-    const redirectUrl = buildRedirectUrl(
-      authParams.redirect_uri,
-      authParams.nonce,
-      enrichedData.pdsUrl || handle,
-    );
+    const pdsUrl = enrichedData.pdsUrl || handle;
 
-    window.location.href = redirectUrl;
+    const transitionToRedirecting = () => {
+      console.log("Navigating to redirection");
+      navigate({
+        to: "/redirect",
+        search: {
+          redirect_uri: authParams.redirect_uri,
+          nonce: authParams.nonce,
+          handle: handle,
+          pdsUrl: pdsUrl,
+        },
+      });
+    };
+
+    if (document.startViewTransition) {
+      document.startViewTransition(transitionToRedirecting);
+    } else {
+      transitionToRedirecting();
+    }
   };
 
   if (!authParams) {
@@ -182,12 +220,9 @@ function AuthPage() {
   return (
     <>
       <GridBackground />
-      <div className="absolute right-2 top-2 inset-0">
-        <ThemeSwitcher />
-      </div>
       <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-6">
         <div className="inline-flex items-center gap-3 view-content-logo">
-          <AtIcon className="w-8 h-8 text-primary" />
+          <AtIcon className="w-8 h-8 dark:text-indigo-400 text-indigo-600" />
           <h2 className="text-3xl text-foreground">Internet Handle</h2>
         </div>
         <GlassCard className="max-w-lg w-full px-8 py-6 animate-scaleIn">
@@ -201,12 +236,16 @@ function AuthPage() {
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   {hasRecentHandles
-                    ? "Choose a recent account"
-                    : "Enter your AT Protocol handle or PDS URL"}
-                  {". "}
-                  <br />
-                  You'll be redirected to your personal data service to complete
-                  sign in.
+                    ? "Choose an account"
+                    : "Enter your AT Protocol handle or PDS URL"}{" "}
+                  to continue to{" "}
+                  <a
+                    href={new URL(authParams.redirect_uri).origin}
+                    className="dark:text-indigo-300/70 dark:hover:text-indigo-300 text-indigo-600/70 hover:text-indigo-600 font-semibold transition-colors"
+                  >
+                    {" "}
+                    {new URL(authParams.redirect_uri).hostname}
+                  </a>
                 </p>
               </div>
 
@@ -224,67 +263,28 @@ function AuthPage() {
                       deleteHandle(handle);
                       setRecentHandles(getRecentHandles());
                     }}
+                    onAdd={() => transitionToView("manual")}
                   />
                 ) : (
                   <HandleInput onSubmit={handleSelection} />
                 )}
 
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border" />
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="px-2 bg-card text-muted-foreground">
-                      or
-                    </span>
-                  </div>
-                </div>
-
-                <div
-                  className={`grid ${hasRecentHandles ? "grid-cols-2" : null} gap-3`}
-                >
-                  {hasRecentHandles && (
-                    <button
-                      onClick={() => transitionToView("manual")}
-                      className="
-                      group
-                      relative
-                      flex items-center justify-center
-                      px-4 py-3
-                      bg-secondary hover:bg-secondary/80
-                      border border-border
-                      rounded-xl
-                      text-sm text-secondary-foreground
-                      transition-all
-                      hover:translate-x-0.5
-                    "
-                    >
-                      <span>Enter your handle</span>
-                      <CaretRightIcon
-                        className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all -ml-4 group-hover:ml-2"
-                        weight="bold"
-                      />
-                    </button>
-                  )}
-
+                <div className="relative flex flex-row justify-end items-center">
                   <button
                     onClick={() => transitionToView("signup")}
                     className="
+                    flex flex-row items-center
                       group
-                      relative
-                      flex items-center justify-center
-                      px-4 py-2
-                      bg-primary/10 hover:bg-primary/20
-                      border border-primary/20 hover:border-primary/40
-                      rounded-xl
-                      text-sm text-primary
-                      transition-all
-                      hover:translate-x-0.5
+                      gap-2
+                      text-sm dark:text-indigo-300/70 dark:hover:text-indigo-300 text-indigo-600/70 hover:text-indigo-600 font-semibold
+                      transition-colors
+                      cursor-pointer
+                      py-2
                     "
                   >
-                    <span>Sign up</span>
+                    <span>Or, sign up</span>
                     <CaretRightIcon
-                      className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-all -ml-4 group-hover:ml-2"
+                      className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all -ml-3 group-hover:ml-1"
                       weight="bold"
                     />
                   </button>
@@ -318,12 +318,33 @@ function AuthPage() {
               </div>
 
               <HandleInput onSubmit={handleSelection} />
+
+              <div className="relative flex flex-row justify-end items-center">
+                <button
+                  onClick={() => transitionToView("signup")}
+                  className="
+                  flex flex-row items-center
+                    group
+                    gap-2
+                    text-sm dark:text-indigo-300/70 dark:hover:text-indigo-300 text-indigo-600/70 hover:text-indigo-600 font-semibold
+                    transition-colors
+                    cursor-pointer
+                    py-2
+                  "
+                >
+                  <span>Or, sign up</span>
+                  <CaretRightIcon
+                    className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-all -ml-3 group-hover:ml-1"
+                    weight="bold"
+                  />
+                </button>
+              </div>
             </div>
           )}
 
           {view === "signup" && (
             <div className="view-content">
-              <div className="mb-8">
+              <div className="mb-4">
                 <button
                   onClick={() => transitionToView("main")}
                   className="
@@ -344,84 +365,20 @@ function AuthPage() {
                   Choose a hosting provider to get started
                 </p>
               </div>
-
-              <div className="space-y-3">
-                <a
-                  href="https://bsky.app"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="
-                    flex items-center justify-between
-                    px-4 py-4
-                    bg-card hover:bg-accent
-                    border border-border hover:border-primary/50
-                    rounded-xl
-                    transition-all
-                    group
-                  "
-                >
-                  <div>
-                    <div className="text-sm font-medium text-foreground mb-1">
-                      Bluesky
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Official Bluesky hosting
-                    </div>
-                  </div>
-                  <ArrowSquareOutIcon
-                    className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors"
-                    weight="bold"
-                  />
-                </a>
-
-                <a
-                  href="https://pdslist.org"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="
-                    flex items-center justify-between
-                    px-4 py-4
-                    bg-card hover:bg-accent
-                    border border-border hover:border-primary/50
-                    rounded-xl
-                    transition-all
-                    group
-                  "
-                >
-                  <div>
-                    <div className="text-sm font-medium text-foreground mb-1">
-                      Browse PDS Providers
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      Find alternative hosting providers
-                    </div>
-                  </div>
-                  <ArrowSquareOutIcon
-                    className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors"
-                    weight="bold"
-                  />
-                </a>
-              </div>
+              <PDSSelector
+                onSelect={(pdsUrl) => handleSelection(pdsUrl, "pds")}
+              />
             </div>
           )}
-
-          <div className="mt-8 border-border">
-            <p className="text-xs text-muted-foreground text-center">
-              Redirecting to{" "}
-              <span className="text-foreground font-mono ml-0.5">
-                {new URL(authParams.redirect_uri).hostname}
-              </span>
-            </p>
-          </div>
         </GlassCard>
         <a
           href="https://internethandle.org"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-row items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors hover:bg-accent rounded-lg px-3 py-1"
+          className="flex flex-row items-center gap-1 text-sm text-muted-foreground hover:text-foreground transition-colors hover:bg-accent rounded-lg px-3 py-1 z-10"
         >
-          <p>What's an internet handle? </p>
-          <ArrowSquareOutIcon />
+          <p>Login managed by the AT Protocol</p>
+          <QuestionIcon />
         </a>
       </div>
     </>
