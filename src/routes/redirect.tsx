@@ -38,7 +38,7 @@ function RedirectingPage() {
         "hint",
         searchParams.handle || searchParams.pdsUrl,
       );
-      //window.location.href = redirectUrl.toString();
+      window.location.href = redirectUrl.toString();
     }, 1200);
 
     return () => clearTimeout(timer);
