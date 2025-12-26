@@ -1,5 +1,4 @@
 import { GlobeIcon, CaretRightIcon } from "@phosphor-icons/react";
-import type { Icon } from "@phosphor-icons/react";
 
 interface PDSOption {
   url: string;

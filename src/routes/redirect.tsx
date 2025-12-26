@@ -2,7 +2,6 @@ import { createFileRoute, useSearch } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { GridBackground } from "../components/GridBackground";
 import { GlassCard } from "../components/GlassCard";
-import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import Throbber from "@/components/Throbber";
 
 type RedirectingSearch = {

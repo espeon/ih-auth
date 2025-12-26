@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { GridBackground } from "../components/GridBackground";
-import { GlassCard } from "../components/GlassCard";
 import { AtIcon } from "../components/AtIcon";
 
 export const Route = createFileRoute("/")({
