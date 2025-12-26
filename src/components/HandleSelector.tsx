@@ -12,6 +12,7 @@ interface HandleSelectorProps {
   onSelect: (handle: string) => void;
   onDelete: (handle: string) => void;
   onAdd?: () => void;
+  editMode?: boolean;
 }
 
 export function HandleSelector({
@@ -19,6 +20,7 @@ export function HandleSelector({
   onSelect,
   onDelete,
   onAdd = () => {},
+  editMode = false,
 }: HandleSelectorProps) {
   if (handles.length === 0) return null;
 
@@ -34,7 +36,7 @@ export function HandleSelector({
             }}
           >
             <button
-              onClick={() => onSelect(stored.handle)}
+              onClick={() => !editMode && onSelect(stored.handle)}
               className="
                 w-full
                 flex items-center gap-3
@@ -90,41 +92,39 @@ export function HandleSelector({
                   via {stored.pdsUrl}
                 </div>
               </div>
-              <div className="flex flex-row items-center gap-2">
-                <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDelete(stored.handle);
-                  }}
-                  className="
-                  group
-                 hover:bg-destructive/20
-                 hover:border-destructive/40
-                 p-1.5
-                rounded-lg
-                opacity-0 group-hover:opacity-100
-                transition-all
-                hover:scale-105
-                text-destructive/30
-                 hover:text-destructive/80
-              "
-                  aria-label="Delete account"
-                >
-                  <TrashIcon
-                    className="w-4 h-4 transition-colors"
-                    weight="bold"
-                  />
-                </div>
 
-                <div
-                  className="
-              opacity-0 group-hover:opacity-100
-              text-primary
-              transition-opacity
-            "
-                >
-                  <CaretRightIcon className="w-5 h-5" weight="bold" />
-                </div>
+              <div className="relative w-5 h-5 flex items-center justify-center">
+                {editMode ? (
+                  <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDelete(stored.handle);
+                    }}
+                    className="
+                      absolute
+                      text-destructive/60
+                      hover:text-destructive
+                      transition-all
+                      animate-in fade-in duration-200
+                      cursor-pointer
+                    "
+                    role="button"
+                    aria-label="Delete account"
+                  >
+                    <TrashIcon className="w-5 h-5" weight="bold" />
+                  </div>
+                ) : (
+                  <div
+                    className="
+                      absolute
+                      opacity-0 group-hover:opacity-100
+                      text-primary
+                      transition-opacity
+                    "
+                  >
+                    <CaretRightIcon className="w-5 h-5" weight="bold" />
+                  </div>
+                )}
               </div>
             </button>
           </div>

@@ -16,6 +16,7 @@ import {
   CaretLeftIcon,
   CaretRightIcon,
   QuestionIcon,
+  Gear,
 } from "@phosphor-icons/react";
 import type { StoredHandle } from "../types/auth";
 import { AtIcon } from "@/components/AtIcon";
@@ -48,6 +49,7 @@ function AuthPage() {
   const [authParams] = useState(() => parseAuthParams(window.location.search));
   const [recentHandles, setRecentHandles] = useState<StoredHandle[]>([]);
   const [isEnriching, setIsEnriching] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   const hasRecentHandles = recentHandles.length > 0;
   const view = searchParams.view || (hasRecentHandles ? "main" : "manual");
@@ -234,24 +236,45 @@ function AuthPage() {
                     ? "Sign in to continue"
                     : "Enter your handle"}
                 </h1>
-                <p className="text-sm text-muted-foreground">
-                  {hasRecentHandles
-                    ? "Choose an account"
-                    : "Enter your AT Protocol handle or PDS URL"}{" "}
-                  to continue to{" "}
-                  <a
-                    href={new URL(authParams.redirect_uri).origin}
-                    className="dark:text-indigo-300/70 dark:hover:text-indigo-300 text-indigo-600/70 hover:text-indigo-600 font-semibold transition-colors"
-                  >
-                    {" "}
-                    {new URL(authParams.redirect_uri).hostname}
-                  </a>
-                </p>
+                <div className="flex justify-between items-center">
+                  <p className="text-sm text-muted-foreground">
+                    {hasRecentHandles
+                      ? "Choose an account"
+                      : "Enter your AT Protocol handle or PDS URL"}{" "}
+                    to continue to{" "}
+                    <a
+                      href={new URL(authParams.redirect_uri).origin}
+                      className="dark:text-indigo-300/70 dark:hover:text-indigo-300 text-indigo-600/70 hover:text-indigo-600 font-semibold transition-colors"
+                    >
+                      {" "}
+                      {new URL(authParams.redirect_uri).hostname}
+                    </a>
+                  </p>
+                  {hasRecentHandles && (
+                    <button
+                      onClick={() => setEditMode(!editMode)}
+                      className={`
+                        p-2
+                        rounded-lg
+                        transition-all
+                        ${
+                          editMode
+                            ? "bg-primary/20 text-primary -my-16"
+                            : "hover:bg-accent text-muted-foreground hover:text-foreground -my-16"
+                        }
+                      `}
+                      aria-label={editMode ? "Done editing" : "Edit accounts"}
+                    >
+                      <Gear className="w-5 h-5" weight="bold" />
+                    </button>
+                  )}
+                </div>
               </div>
 
               <div className="space-y-4">
                 {hasRecentHandles ? (
                   <HandleSelector
+                    editMode={editMode}
                     handles={recentHandles}
                     onSelect={(handle) => {
                       const stored = recentHandles.find(
