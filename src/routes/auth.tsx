@@ -175,7 +175,7 @@ function AuthPage() {
     return (
       <>
         <GridBackground />
-        <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="min-h-screen flex items-center justify-center px-2 py-6">
           <GlassCard className="max-w-lg w-full p-8 animate-scaleIn">
             <div className="flex items-start gap-3 text-destructive-foreground">
               <WarningCircleIcon
@@ -220,7 +220,7 @@ function AuthPage() {
   return (
     <>
       <GridBackground />
-      <div className="min-h-screen flex flex-col items-center justify-center p-6 gap-6">
+      <div className="min-h-screen flex flex-col items-center justify-center px-2 py-6 gap-6">
         <div className="inline-flex items-center gap-3 view-content-logo">
           <AtIcon className="w-8 h-8 dark:text-indigo-400 text-indigo-600" />
           <h2 className="text-3xl text-foreground">Internet Handle</h2>

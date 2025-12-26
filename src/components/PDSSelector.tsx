@@ -132,7 +132,7 @@ export function PDSSelector({ onSelect }: PDSSelectorProps) {
                 <div className="text-sm text-foreground font-medium truncate">
                   {pds.name}
                 </div>
-                <div className="text-xs text-muted-foreground truncate">
+                <div className="text-xs text-muted-foreground truncate text-wrap max-w-full">
                   {pds.description}
                 </div>
               </div>
@@ -156,10 +156,10 @@ export function PDSSelector({ onSelect }: PDSSelectorProps) {
         href="https://blog.indexx.dev/3lz3kftpf4k25"
         target="_blank"
         rel="noopener noreferrer"
-        className="text-sm text-primary hover:underline flex items-center justify-center gap-1 mt-2"
+        className="text-xs text-primary hover:underline flex items-center justify-center gap-1 mt-4"
       >
         Other PDS options
-        <CaretRightIcon className="w-4 h-4" weight="bold" />
+        <CaretRightIcon className="w-3 h-3" weight="bold" />
       </a>
     </div>
   );
